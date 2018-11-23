@@ -53,7 +53,7 @@ module Rack
       when false ; false
       when 0     ; false
       else
-        value.is_a?(Numeric) && value > 0 or raise ArgumentError, "value #{value.inspect} should be false, zero, or a positive number."
+        value.is_a?(Numeric) && value > 0 or value.respond_to?(:call) or raise ArgumentError, "value #{value.inspect} should be false, zero, or a positive number."
         value
       end
     end
@@ -101,8 +101,9 @@ module Rack
       return @app.call(env) unless service_timeout
 
       # compute actual timeout to be used for this request; if service_past_wait is true, this is just service_timeout. If false (the default), and wait time was determined, we'll use the shortest value between seconds_service_left and service_timeout. See comment above at service_past_wait for justification.
-      info.timeout = service_timeout # nice and simple, when service_past_wait is true, not so much otherwise:
-      info.timeout = seconds_service_left if !service_past_wait && seconds_service_left && seconds_service_left > 0 && seconds_service_left < service_timeout
+      service_timeout_seconds = service_timeout.respond_to?(:call) ? service_timeout.call(env) : service_timeout
+      info.timeout = service_timeout_seconds # nice and simple, when service_past_wait is true, not so much otherwise:
+      info.timeout = seconds_service_left if !service_past_wait && seconds_service_left && seconds_service_left > 0 && seconds_service_left < service_timeout_seconds
 
       RT._set_state! env, :ready                            # we're good to go, but have done nothing yet
 

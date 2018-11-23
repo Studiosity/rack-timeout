@@ -47,7 +47,7 @@ stack `Rack::Timeout` gets inserted.
 
 ```ruby
 # Gemfile
-gem "rack-timeout", require:"rack/timeout/base"
+gem "rack-timeout", require: "rack/timeout/base"
 ```
 
 ```ruby
@@ -56,6 +56,14 @@ gem "rack-timeout", require:"rack/timeout/base"
 # insert middleware wherever you want in the stack, optionally pass
 # initialization arguments, or use environment variables
 Rails.application.config.middleware.insert_before Rack::Runtime, Rack::Timeout, service_timeout: 5
+```
+
+Or use a proc for a dynamic timeout:
+```ruby
+Rails.application.config.middleware.insert_before Rack::Runtime, Rack::Timeout, service_timeout: proc { |env|
+ env["REQUEST_PATH"].start_with?("/admin") ? 15 : 5
+}
+
 ```
 
 ### Sinatra and other Rack apps
@@ -83,7 +91,7 @@ wait_overtime:     60     # RACK_TIMEOUT_WAIT_OVERTIME
 service_past_wait: false  # RACK_TIMEOUT_SERVICE_PAST_WAIT
 ```
 
-These settings can be overriden during middleware initialization or
+These settings can be overridden during middleware initialization or
 environment variables `RACK_TIMEOUT_*` mentioned above. Middleware
 parameters take precedence:
 
